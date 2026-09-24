@@ -19,121 +19,62 @@ herança, cada combinação nova exigiria uma nova classe (crescimento **multipl
 2 relatórios × 3 formatos = 6 classes; 3 relatórios × 4 formatos = 12 classes...).
 
 O Bridge separa as duas dimensões em **duas hierarquias independentes** e as conecta
-por composição (a "ponte"): a classe `Relatorio` guarda uma referência a um
-`IExportador` e delega a ele a etapa de exportação, em vez de implementá-la.
+por agregação (a "ponte"): a classe `Relatorio` guarda uma referência a um
+`FormatoExportacao` e delega a ele a etapa de exportação, em vez de implementá-la.
 Crescimento passa a ser **aditivo**: uma nova classe por relatório, uma nova classe
 por formato.
 
 ## Diagrama de classes
 
-```mermaid
-classDiagram
-    class Relatorio {
-        <<abstract>>
-        #IExportador exportador
-        +Relatorio(exportador IExportador)
-        +setExportador(exportador IExportador) void
-        #gerarConteudo() String*
-        +getNome() String*
-        +gerarRelatorio() void
-    }
+![Diagrama de classes do padrão Bridge aplicado ao módulo de relatórios](docs/diagrama-classes.png)
 
-    class RelatorioVendas {
-        -double totalVendido
-        -int quantidadePedidos
-        +RelatorioVendas(exportador, totalVendido, quantidadePedidos)
-        #gerarConteudo() String
-        +getNome() String
-    }
+O diagrama separa o problema em duas hierarquias independentes, ligadas por agregação —
+a essência do padrão Bridge. Do lado da **abstração**, a classe abstrata `Relatorio`
+mantém uma referência protegida ao atributo `exportador`, do tipo `FormatoExportacao`,
+e declara o método abstrato `gerarRelatorio()`. As subclasses `RelatorioVendas` e
+`RelatorioRH` herdam dessa abstração e implementam sua própria lógica de conteúdo, sem
+qualquer conhecimento do formato final de saída. Do lado da **implementação**, a
+interface `FormatoExportacao` define o contrato comum (`desenharCabecalho`,
+`desenharCorpo` e `finalizarArquivo`), realizado pelas classes concretas
+`ExportadorPDF`, `ExportadorExcel` e `ExportadorHTML`.
 
-    class RelatorioRH {
-        -int totalFuncionarios
-        -double indiceSatisfacao
-        +RelatorioRH(exportador, totalFuncionarios, indiceSatisfacao)
-        #gerarConteudo() String
-        +getNome() String
-    }
-
-    class IExportador {
-        <<interface>>
-        +exportar(nomeRelatorio String, conteudo String) void
-        +getFormato() String
-    }
-
-    class ExportadorPDF {
-        +exportar(nomeRelatorio, conteudo) void
-        +getFormato() String
-    }
-    class ExportadorExcel {
-        +exportar(nomeRelatorio, conteudo) void
-        +getFormato() String
-    }
-    class ExportadorHTML {
-        +exportar(nomeRelatorio, conteudo) void
-        +getFormato() String
-    }
-
-    class Main {
-        +main(args String[]) void
-    }
-
-    Relatorio <|-- RelatorioVendas
-    Relatorio <|-- RelatorioRH
-    Relatorio o-- IExportador : ponte / composição
-    IExportador <|.. ExportadorPDF
-    IExportador <|.. ExportadorExcel
-    IExportador <|.. ExportadorHTML
-    Main ..> RelatorioVendas : instancia (new)
-    Main ..> RelatorioRH : instancia (new)
-    Main ..> ExportadorPDF : instancia (new)
-    Main ..> ExportadorExcel : instancia (new)
-    Main ..> ExportadorHTML : instancia (new)
-```
-
-- **Abstraction**: `Relatorio` (abstrata) → guarda a referência ao `IExportador`.
+- **Abstraction**: `Relatorio` (abstrata) → guarda a referência ao `FormatoExportacao`.
 - **Refined Abstractions**: `RelatorioVendas`, `RelatorioRH`.
-- **Implementor**: `IExportador` (interface).
+- **Implementor**: `FormatoExportacao` (interface).
 - **Concrete Implementors**: `ExportadorPDF`, `ExportadorExcel`, `ExportadorHTML`.
 - **Client**: `Main`, o único ponto do sistema onde há `new` de classes concretas.
 
 ## Fluxo de execução (sequência)
 
-```mermaid
-sequenceDiagram
-    participant C as Main (Client)
-    participant RV as RelatorioVendas
-    participant EP as ExportadorPDF
-    participant EE as ExportadorExcel
-    participant RH as RelatorioRH
-    participant EH as ExportadorHTML
+![Diagrama de sequência: instanciação, injeção de dependência e delegação](docs/diagrama-sequencia.png)
 
-    C->>EP: new ExportadorPDF()
-    C->>RV: new RelatorioVendas(exportadorPDF, ...)
-    C->>RV: gerarRelatorio()
-    RV->>EP: exportar("Relatorio de Vendas", conteudo)
-
-    C->>EE: new ExportadorExcel()
-    C->>RV: setExportador(exportadorExcel)
-    C->>RV: gerarRelatorio()
-    RV->>EE: exportar("Relatorio de Vendas", conteudo)
-
-    C->>EH: new ExportadorHTML()
-    C->>RH: new RelatorioRH(exportadorHTML, ...)
-    C->>RH: gerarRelatorio()
-    RH->>EH: exportar("Relatorio de Desempenho de RH", conteudo)
-```
+O diagrama de sequência ilustra o fluxo de execução de uma chamada típica ao sistema.
+A classe cliente `Main` primeiro instancia um exportador concreto (`new ExportadorPDF()`)
+e, em seguida, cria a abstração `RelatorioVendas`, injetando essa instância via
+construtor — é exatamente nesse passo que a "ponte" entre as duas hierarquias é
+estabelecida em tempo de execução. Ao chamar `gerarRelatorio()`, o objeto `relatorio`
+não implementa a formatação diretamente: ele delega cada etapa do processo —
+`desenharCabecalho(titulo)`, `desenharCorpo(dados)` e `finalizarArquivo()` — ao objeto
+`exportador` recebido por injeção de dependência. Essa delegação demonstra o benefício
+central do padrão: se fosse necessário gerar o mesmo relatório em Excel ou HTML,
+bastaria injetar uma instância diferente (`ExportadorExcel` ou `ExportadorHTML`) —
+nenhuma linha de código em `Relatorio`, `RelatorioVendas` ou `RelatorioRH` precisaria
+ser alterada.
 
 ## Estrutura de diretórios
 
 ```
 techfatec-relatorios/
+├── docs/
+│   ├── diagrama-classes.png
+│   └── diagrama-sequencia.png
 ├── src/
 │   ├── abstracao/          # Hierarquia de Relatórios (Abstraction)
 │   │   ├── Relatorio.java
 │   │   ├── RelatorioVendas.java
 │   │   └── RelatorioRH.java
 │   ├── implementacao/      # Hierarquia de Exportadores (Implementor)
-│   │   ├── IExportador.java
+│   │   ├── FormatoExportacao.java
 │   │   ├── ExportadorPDF.java
 │   │   ├── ExportadorExcel.java
 │   │   └── ExportadorHTML.java
@@ -145,10 +86,10 @@ techfatec-relatorios/
 ## Injeção de dependência
 
 Nenhuma classe de `abstracao/` faz `new` de um exportador concreto. O construtor
-de `Relatorio` (e das subclasses) **recebe** um `IExportador` já pronto:
+de `Relatorio` (e das subclasses) **recebe** um `FormatoExportacao` já pronto:
 
 ```java
-protected Relatorio(IExportador exportador) {
+protected Relatorio(FormatoExportacao exportador) {
     this.exportador = exportador;
 }
 ```
@@ -174,14 +115,14 @@ java -cp bin cliente.Main
 
 ### Saída esperada (resumo)
 
-1. `Relatorio de Vendas` exportado em **PDF**.
+1. `Relatorio de Vendas` exportado em **PDF** (`desenharCabecalho` → `desenharCorpo` → `finalizarArquivo`).
 2. O **mesmo objeto** `relatorioVendas`, com o exportador trocado em runtime,
    exportado em **Excel (XLSX)**.
 3. `Relatorio de Desempenho de RH` exportado em **HTML**.
 
 ## Extensibilidade (OCP na prática)
 
-- **Novo formato** (ex.: CSV): criar `ExportadorCSV implements IExportador`.
+- **Novo formato** (ex.: CSV): criar `ExportadorCSV implements FormatoExportacao`.
   Nenhuma classe de `abstracao/` precisa ser tocada.
 - **Novo relatório** (ex.: Relatório Financeiro): criar
   `RelatorioFinanceiro extends Relatorio`. Nenhuma classe de `implementacao/`
