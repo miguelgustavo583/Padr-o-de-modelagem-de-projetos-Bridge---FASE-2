@@ -17,7 +17,7 @@ O Bridge separa essas duas dimensões em **duas hierarquias independentes** e as
 
 ## Diagrama de classes
 
-![Diagrama de classes do padrão Bridge aplicado ao módulo de relatórios](docs/diagrama-classes.png)
+![Diagrama de classes do padrão Bridge aplicado ao módulo de relatórios](techfatec-relatorios/diagramas/diagrama-classe.png)
 
 O diagrama separa o problema em duas hierarquias independentes, ligadas por agregação — a essência do padrão Bridge.
 
@@ -29,7 +29,7 @@ O diagrama separa o problema em duas hierarquias independentes, ligadas por agre
 
 ## Fluxo de execução — Diagrama de sequência
 
-![Diagrama de sequência: instanciação, injeção de dependência e delegação](docs/diagrama-sequencia.png)
+![Diagrama de sequência: instanciação, injeção de dependência e delegação](techfatec-relatorios/diagramas/diagrama-sequencia.png)
 
 O diagrama de sequência mostra a instanciação do exportador, a criação do relatório com injeção de dependência e a delegação das etapas de exportação (`desenharCabecalho`, `desenharCorpo` e `finalizarArquivo`).
 
@@ -38,23 +38,23 @@ A principal vantagem é que o mesmo relatório pode utilizar diferentes formatos
 ## Estrutura de diretórios
 
 ```text
-techfatec-relatorios/
-├── diagramas/
-│   ├── diagrama-classe.png
-│   └── diagrama-sequencia.png
-├── src/
-│   ├── abstracao/
-│   │   ├── Relatorio.java
-│   │   ├── RelatorioVendas.java
-│   │   └── RelatorioRH.java
-│   ├── implementacao/
-│   │   ├── FormatoExportacao.java
-│   │   ├── ExportadorPDF.java
-│   │   ├── ExportadorExcel.java
-│   │   └── ExportadorHTML.java
-│   └── cliente/
-│       └── Main.java
-└── README.md
+README.md
+└── techfatec-relatorios/
+    ├── diagramas/
+    │   ├── diagrama-classe.png
+    │   └── diagrama-sequencia.png
+    └── src/
+        ├── abstracao/
+        │   ├── Relatorio.java
+        │   ├── RelatorioVendas.java
+        │   └── RelatorioRH.java
+        ├── implementacao/
+        │   ├── IExportador.java
+        │   ├── ExportadorPDF.java
+        │   ├── ExportadorExcel.java
+        │   └── ExportadorHTML.java
+        └── cliente/
+            └── Main.java
 ```
 
 ## Injeção de dependência
