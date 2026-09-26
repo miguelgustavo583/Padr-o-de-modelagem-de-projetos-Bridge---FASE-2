@@ -1,3 +1,5 @@
+
+
 # TechFatec BI — Módulo de Relatórios (Padrão Bridge)
 
 Expansão do módulo de relatórios do sistema de inteligência de negócios da TechFatec.
@@ -8,6 +10,12 @@ O sistema legado só gerava o **Relatório de Vendas** em **PDF**. Este projeto 
 - qualquer **formato** (PDF, Excel/XLSX, HTML e futuros)
 
 sem explosão de subclasses (`RelatorioVendasPDF`, `RelatorioVendasExcel`, `RelatorioRHPDF`, `RelatorioRHExcel`...) e respeitando o **Princípio Aberto/Fechado (OCP)** do SOLID.
+
+## Dupla
+
+* Henrique de Moraes Rodrigues
+
+* Miguel Gustavo de Sousa Campos
 
 ## Por que Bridge e não Herança simples?
 
